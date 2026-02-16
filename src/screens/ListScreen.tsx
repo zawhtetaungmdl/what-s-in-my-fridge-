@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { GroceryItem } from '../types';
 
 // Mock Data
-const INITIAL_ITEMS = [
-  { id: '1', name: 'Avocados', category: 'Produce', quantity: 3, checked: false },
-  { id: '2', name: 'Spinach', category: 'Produce', quantity: 1, checked: false },
-  { id: '3', name: 'Sourdough Bread', category: 'Bakery', quantity: 1, checked: false },
-  { id: '4', name: 'Eggs (Large)', category: 'Dairy', quantity: 12, checked: false },
-  { id: '5', name: 'Milk (Whole)', category: 'Dairy', quantity: 1, checked: true },
+const INITIAL_ITEMS: GroceryItem[] = [
+  { id: '1', name: 'Avocados', category: 'Produce', quantity: 3, isChecked: false },
+  { id: '2', name: 'Spinach', category: 'Produce', quantity: 1, isChecked: false },
+  { id: '3', name: 'Sourdough Bread', category: 'Bakery', quantity: 1, isChecked: false },
+  { id: '4', name: 'Eggs (Large)', category: 'Dairy', quantity: 12, isChecked: false },
+  { id: '5', name: 'Milk (Whole)', category: 'Dairy', quantity: 1, isChecked: true },
 ];
 
 const ListScreen = () => {
-  const [items, setItems] = useState(INITIAL_ITEMS);
+  const [items, setItems] = useState<GroceryItem[]>(INITIAL_ITEMS);
   const [newItem, setNewItem] = useState('');
 
   const toggleCheck = (id: string) => {
     setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, checked: !item.checked } : item
+      item.id === id ? { ...item, isChecked: !item.isChecked } : item
     ));
   };
 
@@ -30,27 +31,36 @@ const ListScreen = () => {
         name: newItem,
         category: 'Other',
         quantity: 1,
-        checked: false,
+        isChecked: false,
       }
     ]);
     setNewItem('');
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.itemRow, item.checked && styles.checkedRow]}
-      onPress={() => toggleCheck(item.id)}
-    >
-      <View style={[styles.checkbox, item.checked && styles.checkedBox]}>
-        {item.checked && <MaterialCommunityIcons name="check" size={16} color="#fff" />}
-      </View>
+  const deleteItem = (id: string) => {
+    setItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const renderItem = ({ item }: { item: GroceryItem }) => (
+    <View style={[styles.itemRow, item.isChecked && styles.checkedRow]}>
+      <TouchableOpacity
+        style={[styles.checkbox, item.isChecked && styles.checkedBox]}
+        onPress={() => toggleCheck(item.id)}
+      >
+        {item.isChecked && <MaterialCommunityIcons name="check" size={16} color="#fff" />}
+      </TouchableOpacity>
+
       <View style={styles.itemInfo}>
-        <Text style={[styles.itemName, item.checked && styles.checkedText]}>{item.name}</Text>
-        {item.quantity > 1 && (
+        <Text style={[styles.itemName, item.isChecked && styles.checkedText]}>{item.name}</Text>
+        {(item.quantity || 0) > 1 && (
           <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
         )}
       </View>
-    </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => deleteItem(item.id)} style={styles.deleteButton}>
+        <MaterialCommunityIcons name="trash-can-outline" size={20} color="#ef4444" />
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -59,7 +69,7 @@ const ListScreen = () => {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Grocery List</Text>
-          <Text style={styles.subtitle}>{items.filter(i => !i.checked).length} items needed</Text>
+          <Text style={styles.subtitle}>{items.filter(i => !i.isChecked).length} items needed</Text>
         </View>
         <TouchableOpacity style={styles.moreButton}>
           <MaterialCommunityIcons name="dots-horizontal" size={24} color="#6b7280" />
@@ -170,6 +180,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     marginTop: 2,
+  },
+  deleteButton: {
+    padding: 8,
   },
   inputContainer: {
     position: 'absolute',

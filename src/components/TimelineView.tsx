@@ -5,9 +5,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 interface TimelineViewProps {
   filterDate: string | null;
   onClearFilter: () => void;
+  onItemPress: (item: any) => void;
 }
 
-const TimelineView = ({ filterDate, onClearFilter }: TimelineViewProps) => {
+const TimelineView = ({ filterDate, onClearFilter, onItemPress }: TimelineViewProps) => {
   // Mock Data
   const timelineItems = [
     { time: '08:00', title: 'Almond Milk', status: 'Fresh', icon: 'water-outline', color: '#3b82f6', expiry: 'Opened 2 days ago' },
@@ -42,7 +43,11 @@ const TimelineView = ({ filterDate, onClearFilter }: TimelineViewProps) => {
           </View>
 
           {/* Card */}
-          <View style={[styles.card, item.isUrgent && styles.urgentCard]}>
+          <TouchableOpacity
+            style={[styles.card, item.isUrgent && styles.urgentCard]}
+            onPress={() => onItemPress(item)}
+            activeOpacity={0.7}
+          >
             <View style={styles.cardHeader}>
               <View style={[styles.iconContainer, { backgroundColor: `${item.color}20` }]}>
                 <MaterialCommunityIcons name={item.icon as any} size={24} color={item.color} />
@@ -52,7 +57,7 @@ const TimelineView = ({ filterDate, onClearFilter }: TimelineViewProps) => {
                 <Text style={[styles.cardSubtitle, item.isUrgent && { color: item.color }]}>{item.expiry}</Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
       ))}
     </ScrollView>

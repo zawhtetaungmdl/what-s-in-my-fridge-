@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
 
 interface CalendarWidgetProps {
   selectedDate: string | null;
@@ -18,6 +18,25 @@ const CalendarWidget = ({ selectedDate, onDateSelect }: CalendarWidgetProps) => 
     { day: 'Sun', date: '20', status: 'none' },
   ];
 
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.15,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [pulseAnim]);
+
   return (
     <View style={styles.container}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -31,14 +50,29 @@ const CalendarWidget = ({ selectedDate, onDateSelect }: CalendarWidgetProps) => 
               style={[
                 styles.dateItem,
                 isSelected && styles.selectedItem,
-                isCurrent && !isSelected && styles.currentItem
               ]}
               onPress={() => onDateSelect(item.date)}
             >
               <Text style={[styles.dayText, (isSelected || isCurrent) && styles.activeText]}>{item.day}</Text>
-              <View style={[styles.dateCircle, isSelected && styles.selectedCircle, isCurrent && styles.currentCircle]}>
-                <Text style={[styles.dateText, (isSelected || isCurrent) && styles.activeText]}>{item.date}</Text>
-              </View>
+
+              {/* Conditional rendering for Animated View only for current date */}
+              {isCurrent ? (
+                <Animated.View style={[
+                    styles.dateCircle,
+                    isCurrent && styles.currentCircle,
+                    { transform: [{ scale: isSelected ? 1 : pulseAnim }] } // Disable pulse if selected to avoid conflict or keep it
+                ]}>
+                  <Text style={[styles.dateText, (isSelected || isCurrent) && styles.activeText]}>{item.date}</Text>
+                </Animated.View>
+              ) : (
+                 <View style={[
+                    styles.dateCircle,
+                    isSelected && styles.selectedCircle,
+                ]}>
+                  <Text style={[styles.dateText, (isSelected || isCurrent) && styles.activeText]}>{item.date}</Text>
+                </View>
+              )}
+
               {/* Dots for status */}
               <View style={styles.dotsContainer}>
                 {item.status === 'expiring' && (
@@ -70,9 +104,6 @@ const styles = StyleSheet.create({
   },
   selectedItem: {
     // scale transform handled by reanimated ideally
-  },
-  currentItem: {
-    //
   },
   dayText: {
     fontSize: 12,
